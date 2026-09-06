@@ -1,0 +1,183 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Risk Executive Analytics</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Plugin para Rótulos de Dados nos Gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="light-theme">
+    <header class="top-header">
+        <div class="header-left">
+            <h2>Análise Executiva de Risco de Crédito</h2>
+        </div>
+        <div class="header-right">
+            <button class="btn-icon" onclick="resetDashboard()" title="Recarregar Dashboard">
+                <i data-lucide="rotate-cw"></i>
+            </button>
+            <button class="btn-icon" onclick="toggleTheme()" title="Alternar Tema">
+                <i data-lucide="moon" id="theme-icon"></i>
+            </button>
+            <button class="btn-icon" onclick="toggleFullscreen()" title="Tela Cheia">
+                <i data-lucide="maximize" id="fullscreen-icon"></i>
+            </button>
+            <button class="btn-icon btn-primary-icon" onclick="downloadPDF()" title="Baixar PDF">
+                <i data-lucide="download"></i>
+            </button>
+        </div>
+    </header>
+
+    <nav class="tabs-nav">
+        <button class="nav-tab active" onclick="openTab(event, 'aba1')">Visão Geral & Perda Estimada</button>
+        <button class="nav-tab" onclick="openTab(event, 'aba2')">Perfil Patrimonial do Tomador</button>
+        <button class="nav-tab" onclick="openTab(event, 'aba3')">Pricing & Propósito</button>
+        <button class="nav-tab" onclick="openTab(event, 'aba4')">Matriz de Comprometimento</button>
+    </nav>
+
+    <div class="main-layout">
+        <aside class="sidebar-filters" id="sidebar">
+            <div class="filter-header">
+                <div class="filter-title">
+                    <i data-lucide="filter" class="filter-icon"></i>
+                    <span class="filter-text">Filtros</span>
+                </div>
+                <button class="btn-toggle-sidebar" onclick="toggleSidebar()" title="Minimizar/Expandir">
+                    <i data-lucide="chevron-left" id="sidebar-icon"></i>
+                </button>
+            </div>
+
+            <div class="filter-content" id="filter-content">
+                <button class="btn-clear-all-top" onclick="clearAllFilters()">Resetar Filtros</button>
+
+                <!-- FILTRO 1: NOTA DE RISCO -->
+                <div class="filter-card">
+                    <div class="filter-card-header">
+                        <label>Nota de Risco (Grade)</label>
+                        <div class="filter-card-actions">
+                            <span onclick="selectAllInCard('grade')">Todos</span>
+                            <span class="separator">|</span>
+                            <span onclick="clearAllInCard('grade')">Limpar</span>
+                        </div>
+                    </div>
+                    <div class="checkbox-group" id="group-grade">
+                        <label><input type="checkbox" name="grade" value="A" checked onchange="applyFilters()"> Grade A (Baixo Risco)</label>
+                        <label><input type="checkbox" name="grade" value="B" checked onchange="applyFilters()"> Grade B</label>
+                        <label><input type="checkbox" name="grade" value="C" checked onchange="applyFilters()"> Grade C</label>
+                        <label><input type="checkbox" name="grade" value="D" checked onchange="applyFilters()"> Grade D</label>
+                        <label><input type="checkbox" name="grade" value="E" checked onchange="applyFilters()"> Grade E</label>
+                        <label><input type="checkbox" name="grade" value="F" checked onchange="applyFilters()"> Grade F</label>
+                        <label><input type="checkbox" name="grade" value="G" checked onchange="applyFilters()"> Grade G (Alto Risco)</label>
+                    </div>
+                </div>
+
+                <!-- FILTRO 2: SITUAÇÃO DA MORADIA -->
+                <div class="filter-card">
+                    <div class="filter-card-header">
+                        <label>Situação da Moradia</label>
+                        <div class="filter-card-actions">
+                            <span onclick="selectAllInCard('moradia')">Todos</span>
+                            <span class="separator">|</span>
+                            <span onclick="clearAllInCard('moradia')">Limpar</span>
+                        </div>
+                    </div>
+                    <div class="checkbox-group" id="group-moradia">
+                        <label><input type="checkbox" name="moradia" value="Alugada" checked onchange="applyFilters()"> Alugada</label>
+                        <label><input type="checkbox" name="moradia" value="Financiada" checked onchange="applyFilters()"> Financiada</label>
+                        <label><input type="checkbox" name="moradia" value="Própria" checked onchange="applyFilters()"> Própria</label>
+                        <label><input type="checkbox" name="moradia" value="Outros" checked onchange="applyFilters()"> Outros</label>
+                    </div>
+                </div>
+
+                <!-- FILTRO 3: MOTIVO DO EMPRÉSTIMO -->
+                <div class="filter-card">
+                    <div class="filter-card-header">
+                        <label>Motivo do Empréstimo</label>
+                        <div class="filter-card-actions">
+                            <span onclick="selectAllInCard('motivo')">Todos</span>
+                            <span class="separator">|</span>
+                            <span onclick="clearAllInCard('motivo')">Limpar</span>
+                        </div>
+                    </div>
+                    <div class="checkbox-group" id="group-motivo">
+                        <label><input type="checkbox" name="motivo" value="Pessoal" checked onchange="applyFilters()"> Pessoal</label>
+                        <label><input type="checkbox" name="motivo" value="Educação" checked onchange="applyFilters()"> Educação</label>
+                        <label><input type="checkbox" name="motivo" value="Saúde / Médico" checked onchange="applyFilters()"> Saúde / Médico</label>
+                        <label><input type="checkbox" name="motivo" value="Negócios" checked onchange="applyFilters()"> Negócios</label>
+                        <label><input type="checkbox" name="motivo" value="Reforma" checked onchange="applyFilters()"> Reforma</label>
+                        <label><input type="checkbox" name="motivo" value="Consolidação de Dívidas" checked onchange="applyFilters()"> Consolidação</label>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="dashboard-content" id="report-container">
+            <!-- ABA 1 -->
+            <section id="aba1" class="tab-panel active">
+                <div class="kpi-grid">
+                    <div class="kpi-card blue">
+                        <span class="kpi-title">Volume Concedido</span>
+                        <p id="kpi-volume">R$ 0</p>
+                    </div>
+                    <div class="kpi-card gold">
+                        <span class="kpi-title">Inadimplência Geral</span>
+                        <p id="kpi-default">0%</p>
+                    </div>
+                    <div class="kpi-card gold">
+                        <span class="kpi-title">Capital Perdido (Default R$)</span>
+                        <p id="kpi-loss">R$ 0</p>
+                    </div>
+                    <div class="kpi-card blue">
+                        <span class="kpi-title">Taxa Média de Juros</span>
+                        <p id="kpi-juros">0%</p>
+                    </div>
+                </div>
+                <div class="charts-grid-4">
+                    <div class="chart-card"><canvas id="chart1_1"></canvas></div>
+                    <div class="chart-card"><canvas id="chart1_2"></canvas></div>
+                    <div class="chart-card"><canvas id="chart1_3"></canvas></div>
+                    <div class="chart-card"><canvas id="chart1_4"></canvas></div>
+                </div>
+            </section>
+
+            <!-- ABA 2 -->
+            <section id="aba2" class="tab-panel">
+                <div class="charts-grid-4">
+                    <div class="chart-card"><canvas id="chart2_1"></canvas></div>
+                    <div class="chart-card"><canvas id="chart2_2"></canvas></div>
+                    <div class="chart-card"><canvas id="chart2_3"></canvas></div>
+                    <div class="chart-card"><canvas id="chart2_4"></canvas></div>
+                </div>
+            </section>
+
+            <!-- ABA 3 -->
+            <section id="aba3" class="tab-panel">
+                <div class="charts-grid-4">
+                    <div class="chart-card"><canvas id="chart3_1"></canvas></div>
+                    <div class="chart-card"><canvas id="chart3_2"></canvas></div>
+                    <div class="chart-card"><canvas id="chart3_3"></canvas></div>
+                    <div class="chart-card"><canvas id="chart3_4"></canvas></div>
+                </div>
+            </section>
+
+            <!-- ABA 4 -->
+            <section id="aba4" class="tab-panel">
+                <div class="charts-grid-4">
+                    <div class="chart-card"><canvas id="chart4_1"></canvas></div>
+                    <div class="chart-card"><canvas id="chart4_2"></canvas></div>
+                    <div class="chart-card"><canvas id="chart4_3"></canvas></div>
+                    <div class="chart-card"><canvas id="chart4_4"></canvas></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- SCRIPT DE DADOS E LÓGICA -->
+    <script src="dados.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
